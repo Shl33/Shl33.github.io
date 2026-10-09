@@ -1,0 +1,360 @@
+<h1 id="identity"><span class="identity-plane"><span class="identity-text">SHLEE</span><span class="identity-reels" aria-hidden="true"></span></span></h1>
+<div class="motion-controls" hidden>
+  <button type="button" class="motion-button">Enable motion</button>
+  <p class="motion-status muted" role="status" hidden></p>
+</div>
+
+<!-- Inline initialization keeps the brief symbol state ahead of the first paint.
+     The real heading remains the layout and accessibility source of truth. -->
+<script is:inline>
+  (() => {
+    const heading = document.getElementById('identity');
+    const text = heading?.querySelector('.identity-text');
+    const overlay = heading?.querySelector('.identity-reels');
+    const plane = heading?.querySelector('.identity-plane');
+    const controls = heading?.nextElementSibling;
+    const motionButton = controls?.querySelector('.motion-button');
+    const motionStatus = controls?.querySelector('.motion-status');
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!heading || !text || !overlay || !plane || motion.matches || !Element.prototype.animate) return;
+
+    // The previous continuous easing had no separate braking phase. Give its
+    // roughly one-second settling tail a dedicated three-second slowdown.
+    const slowdownDuration = 3000;
+    const fastTravel = 0.6;
+    const deceleration = 'cubic-bezier(0.18, 0.6, 0.35, 1)';
+    const reels = [
+      { final: 'S', initial: '$', sequence: ['5', '&', '2', '?', '8', '$', '5'], delay: 120, duration: 3900 },
+      { final: 'H', initial: '#', sequence: ['4', '+', '7', '=', 'N', '#', '4', '+'], delay: 470, duration: 3200 },
+      { final: 'L', initial: '!', sequence: ['1', '/', '7', '!', '2', '1', '/'], delay: 200, duration: 4380 },
+      { final: 'E', initial: '3', sequence: ['8', '=', '2', '3', '5', '&', '8', '3'], delay: 0, duration: 3450 },
+      { final: 'E', initial: '£', sequence: ['2', '?', '5', '+', '3', '£', '7', '2', '3'], delay: 650, duration: 3750 },
+    ];
+    const animations = [];
+    const tracks = [];
+    let timer;
+    let stopped = false;
+    let previousReel = -1;
+    let introStarted = false;
+    let sensorTimeout;
+    let orientationOrigin;
+    const touchDevice = window.matchMedia('(pointer: coarse)').matches ||
+      /Android|iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+    let tiltFrame;
+    let yaw = 0;
+    let pitch = 0;
+    const resetTilt = () => {
+      window.cancelAnimationFrame(tiltFrame);
+      tiltFrame = undefined;
+      plane.style.removeProperty('--yaw');
+      plane.style.removeProperty('--pitch');
+    };
+    const clamp = value => Math.max(-1, Math.min(1, value));
+    const renderTilt = () => {
+      if (tiltFrame !== undefined) return;
+      tiltFrame = window.requestAnimationFrame(() => {
+        tiltFrame = undefined;
+        if (stopped) return;
+        // Scale the viewing distance with the word so mobile and desktop feel alike.
+        plane.style.setProperty('--view-distance', `${Math.max(800, plane.offsetWidth * 2.5)}px`);
+        plane.style.setProperty('--yaw', `${yaw}deg`);
+        plane.style.setProperty('--pitch', `${pitch}deg`);
+      });
+    };
+    const followMouse = event => {
+      // Measure the stable heading, never the rotated plane, to avoid feedback.
+      const bounds = heading.getBoundingClientRect();
+      const centreY = bounds.top + bounds.height / 2;
+      const verticalRange = event.clientY < centreY ? centreY : window.innerHeight - centreY;
+      yaw = clamp((event.clientX - window.innerWidth / 2) / (window.innerWidth / 2)) * 30;
+      pitch = -clamp((event.clientY - centreY) / Math.max(1, verticalRange)) * 15;
+      renderTilt();
+    };
+    const start = () => {
+      if (introStarted || stopped) return;
+      introStarted = true;
+      timer = window.setTimeout(() => {
+        if (!stopped) animations.forEach(animation => animation.play());
+      }, 1000);
+    };
+    const resetOrientation = () => {
+      orientationOrigin = undefined;
+      resetTilt();
+    };
+    const followOrientation = event => {
+      if (stopped || document.hidden || !Number.isFinite(event.beta) || !Number.isFinite(event.gamma)) return;
+      window.clearTimeout(sensorTimeout);
+      // The first valid reading is the user's comfortable holding position.
+      orientationOrigin ??= { beta: event.beta, gamma: event.gamma };
+      const difference = (value, origin) => ((value - origin + 540) % 360) - 180;
+      const beta = difference(event.beta, orientationOrigin.beta);
+      const gamma = difference(event.gamma, orientationOrigin.gamma);
+      // Older mobile browsers expose the screen angle directly on window.
+      const screenAngle = window.screen.orientation?.angle ?? Reflect.get(window, 'orientation') ?? 0;
+      const angle = screenAngle * Math.PI / 180;
+      const horizontal = gamma * Math.cos(angle) + beta * Math.sin(angle);
+      const vertical = beta * Math.cos(angle) - gamma * Math.sin(angle);
+      yaw = clamp(horizontal / 30) * 30;
+      pitch = -clamp(vertical / 30) * 15;
+      renderTilt();
+      if (!introStarted) {
+        heading.classList.add('is-spinning');
+        start();
+      }
+    };
+    const connectOrientation = () => {
+      if (stopped) return;
+      controls.hidden = true;
+      window.addEventListener('deviceorientation', followOrientation);
+      window.addEventListener('orientationchange', resetOrientation);
+      window.screen.orientation?.addEventListener('change', resetOrientation);
+      window.addEventListener('blur', resetOrientation);
+      document.addEventListener('visibilitychange', resetOrientation);
+      // Some devices expose the API without delivering sensor readings.
+      sensorTimeout = window.setTimeout(() => {
+        if (!introStarted) heading.classList.remove('is-spinning');
+      }, 3000);
+    };
+    const requestMotion = async () => {
+      motionButton.disabled = true;
+      try {
+        // Call directly from the click handler: permission requires a user gesture.
+        const permission = await window.DeviceOrientationEvent.requestPermission();
+        if (stopped) return;
+        if (permission === 'granted') connectOrientation();
+        else {
+          motionButton.hidden = true;
+          motionStatus.hidden = false;
+          motionStatus.textContent = 'Motion is off.';
+        }
+      } catch {
+        if (stopped) return;
+        motionButton.hidden = true;
+        motionStatus.hidden = false;
+        motionStatus.textContent = 'Motion is unavailable.';
+      }
+    };
+    const setGlyphs = (track, glyphs) => {
+      track.replaceChildren(...glyphs.map(glyph => {
+        const cell = document.createElement('span');
+        cell.className = 'identity-glyph';
+        cell.textContent = glyph;
+        return cell;
+      }));
+    };
+    const scheduleRotation = () => {
+      // One random reel toggles per interval, retaining its own letter/symbol state.
+      timer = window.setTimeout(async () => {
+        if (stopped) return;
+        // Exclude the previous position, including when both positions are E.
+        const candidates = reels.map((_, index) => index).filter(index => index !== previousReel);
+        const index = candidates[Math.floor(Math.random() * candidates.length)];
+        previousReel = index;
+        const reel = reels[index];
+        const track = tracks[index];
+        const toSymbol = reel.current === reel.final;
+        const next = toSymbol ? reel.initial : reel.final;
+        setGlyphs(track, toSymbol ? [reel.current, next] : [next, reel.current]);
+        const rotation = track.animate([
+          { transform: toSymbol ? 'translateY(0)' : 'translateY(-50%)' },
+          { transform: toSymbol ? 'translateY(-50%)' : 'translateY(0)' },
+        ], { duration: 650, easing: deceleration, fill: 'both' });
+        animations.push(rotation);
+        try {
+          await rotation.finished;
+          if (stopped) return;
+          reel.current = next;
+          setGlyphs(track, [next]);
+          rotation.cancel();
+          animations.splice(animations.indexOf(rotation), 1);
+          scheduleRotation();
+        } catch {
+          finish();
+        }
+      }, 3000 + Math.random() * 2000);
+    };
+    const beginIdle = () => {
+      if (stopped) return;
+      animations.forEach(animation => animation.cancel());
+      animations.length = 0;
+      reels.forEach((reel, index) => {
+        reel.current = reel.final;
+        setGlyphs(tracks[index], [reel.final]);
+      });
+      scheduleRotation();
+    };
+    const finish = () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      window.clearTimeout(sensorTimeout);
+      window.removeEventListener('mousemove', start);
+      window.removeEventListener('mousemove', followMouse);
+      document.documentElement.removeEventListener('mouseleave', resetTilt);
+      window.removeEventListener('blur', resetTilt);
+      window.removeEventListener('deviceorientation', followOrientation);
+      window.removeEventListener('orientationchange', resetOrientation);
+      window.screen.orientation?.removeEventListener('change', resetOrientation);
+      window.removeEventListener('blur', resetOrientation);
+      document.removeEventListener('visibilitychange', resetOrientation);
+      motionButton?.removeEventListener('click', requestMotion);
+      if (controls) controls.hidden = true;
+      resetTilt();
+      heading.classList.remove('is-spinning');
+      animations.forEach(animation => animation.cancel());
+      overlay.replaceChildren();
+      motion.removeEventListener('change', finish);
+      window.removeEventListener('pagehide', finish);
+    };
+
+    try {
+      const typography = getComputedStyle(heading);
+      const fontSize = parseFloat(typography.fontSize);
+      const tracking = parseFloat(typography.letterSpacing) || 0;
+      const wordBounds = text.getBoundingClientRect();
+      const origin = wordBounds.left;
+      // Centre a word-sized overlay; relative width keeps it aligned on resize.
+      overlay.style.width = `${wordBounds.width / fontSize}em`;
+      reels.forEach((reel, index) => {
+        // Measure the actual shaped word, including tracking/kerning. Relative
+        // units preserve its positions across responsive font-size changes.
+        const range = document.createRange();
+        range.setStart(text.firstChild, index);
+        range.setEnd(text.firstChild, index + 1);
+        const bounds = range.getBoundingClientRect();
+        const slot = document.createElement('span');
+        slot.className = 'identity-slot';
+        slot.style.left = `${(bounds.left - origin) / fontSize}em`;
+        // Negative tracking shortens the advance, not the glyph itself.
+        // Return that ink room to the clipping window without moving any slot.
+        slot.style.width = `${(bounds.width - Math.min(tracking, 0)) / fontSize}em`;
+        const track = document.createElement('span');
+        track.className = 'identity-track';
+        const glyphs = [reel.initial, ...reel.sequence, reel.final];
+        for (const glyph of glyphs) {
+          const cell = document.createElement('span');
+          cell.className = 'identity-glyph';
+          cell.textContent = glyph;
+          track.append(cell);
+        }
+        tracks.push(track);
+        slot.append(track);
+        overlay.append(slot);
+        const travel = 100 * (glyphs.length - 1) / glyphs.length;
+        const animation = track.animate([
+          { transform: 'translateY(0)', offset: 0, easing: 'linear' },
+          {
+            transform: `translateY(-${travel * fastTravel}%)`,
+            offset: (reel.duration - slowdownDuration) / reel.duration,
+            easing: deceleration,
+          },
+          { transform: `translateY(-${travel}%)`, offset: 1 },
+        ], {
+          delay: reel.delay,
+          duration: reel.duration,
+          fill: 'both',
+        });
+        animation.pause();
+        animation.currentTime = 0;
+        animations.push(animation);
+      });
+      heading.classList.add('is-spinning');
+      // Phones/tablets show the real word until their motion input is ready.
+      if (touchDevice) heading.classList.remove('is-spinning');
+      // Ignore early movement; the first movement after arming starts a one-second hold.
+      timer = window.setTimeout(() => {
+        if (stopped) return;
+        if (touchDevice) {
+          if (!window.isSecureContext || !window.DeviceOrientationEvent) {
+            finish();
+          } else if (typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+            controls.hidden = false;
+            motionButton.addEventListener('click', requestMotion);
+          } else {
+            connectOrientation();
+          }
+          return;
+        }
+        window.addEventListener('mousemove', start, { once: true });
+        window.addEventListener('mousemove', followMouse);
+        document.documentElement.addEventListener('mouseleave', resetTilt);
+        window.addEventListener('blur', resetTilt);
+      }, 1000);
+      motion.addEventListener('change', finish);
+      window.addEventListener('pagehide', finish);
+      Promise.all(animations.map(animation => animation.finished)).then(beginIdle, finish);
+    } catch {
+      // Any unsupported API or initialization failure leaves the static word.
+      finish();
+    }
+  })();
+</script>
+
+<style>
+  h1 {
+    position: relative;
+    margin-block: var(--space-4) var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-display);
+    letter-spacing: 0.015em;
+    text-align: center;
+  }
+  .identity-text { opacity: 1; }
+  .motion-controls {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(100% + var(--space-3));
+    text-align: center;
+    font-size: var(--text-small);
+  }
+  .motion-controls[hidden], .motion-button[hidden], .motion-status[hidden] { display: none; }
+  .motion-button {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-rule);
+    background: var(--color-bg);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .identity-plane {
+    display: block;
+    position: relative;
+    width: max-content;
+    margin-inline: auto;
+    transform: perspective(var(--view-distance, 1800px)) rotateX(var(--pitch, 0deg)) rotateY(var(--yaw, 0deg));
+    transform-origin: center;
+  }
+  .identity-reels {
+    display: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  h1.is-spinning .identity-text { opacity: 0; }
+  h1.is-spinning .identity-reels { display: block; }
+  /* Fade outside the resting glyph's ink; cell pitch stays fixed for the reels. */
+  .identity-reels :global(.identity-slot) {
+    position: absolute;
+    top: -0.2em;
+    height: 1.2em;
+    overflow: clip;
+    text-align: left;
+    mask-image: linear-gradient(to bottom, transparent, black 0.2em, black 1em, transparent);
+  }
+  .identity-reels :global(.identity-track) { display: block; }
+  .identity-reels :global(.identity-glyph) {
+    display: block;
+    height: 1.1em;
+    padding-top: 0.2em;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .identity-plane { transform: none; }
+    h1.is-spinning .identity-text { opacity: 1; }
+    h1.is-spinning .identity-reels { display: none; }
+  }
+</style>

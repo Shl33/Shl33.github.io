@@ -1,0 +1,30 @@
+---
+import { projectStatusLabels, type ProjectStatus } from '../lib/project-status';
+
+interface Props {
+  category: string;
+  status: ProjectStatus;
+  year?: number;
+  stage?: string;
+  role?: string;
+}
+const { category, status, year, stage, role } = Astro.props;
+---
+
+<ul class="project-meta eyebrow muted" aria-label="Project information">
+  <li>{category}</li>
+  <li>{stage ?? projectStatusLabels[status]}</li>
+  {role && <li>{role}</li>}
+  {year !== undefined && <li>{year}</li>}
+</ul>
+
+<style>
+  .project-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+</style>

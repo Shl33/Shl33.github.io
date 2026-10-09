@@ -1,0 +1,114 @@
+@import './tokens.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+body, h1, h2, h3, h4, p, figure {
+  margin: 0;
+}
+html {
+  background: var(--color-bg);
+  scroll-behavior: auto;
+}
+body {
+  min-width: 20rem;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+h1, h2, h3, h4 {
+  line-height: var(--leading-heading);
+  font-weight: var(--weight-medium);
+}
+p {
+  text-wrap: pretty;
+}
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+img, video {
+  height: auto;
+}
+button, input, textarea, select {
+  font: inherit;
+}
+a {
+  color: inherit;
+  text-underline-offset: 0.25em;
+  text-decoration-thickness: 1px;
+  transition: color var(--motion-duration) var(--motion-easing);
+}
+a:hover {
+  color: var(--color-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 5px;
+}
+::selection {
+  color: var(--color-bg);
+  background: var(--color-accent);
+}
+[id] {
+  scroll-margin-top: var(--space-4);
+}
+.container {
+  width: min(calc(100% - var(--gutter) * 2), var(--content-width));
+  margin-inline: auto;
+}
+.container--wide {
+  max-width: var(--wide-width);
+  width: calc(100% - var(--gutter) * 2);
+}
+.eyebrow {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.muted {
+  color: var(--color-text-muted);
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  color: var(--color-text);
+}
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--gutter);
+  z-index: var(--layer-skip-link);
+  padding: var(--space-3);
+  background: var(--color-text);
+  color: var(--color-bg);
+  transform: translateY(calc(-100% - 2rem));
+}
+.skip-link:focus {
+  transform: translateY(0);
+  color: var(--color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

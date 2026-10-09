@@ -1,14 +1,179 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SHLEE.CO.UK</title>
-  </head>
-  <body>
-    <main>
-      <h1>SHLEE.CO.UK</h1>
-      <p>Astro foundation is ready for development.</p>
-    </main>
-  </body>
-</html>
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectMeta from '../components/ProjectMeta.astro';
+import HomeProject from '../components/HomeProject.astro';
+import HeroIdentity from '../components/HeroIdentity.astro';
+import { getPublicProjects, projectUrl } from '../lib/projects';
+
+const featured = (await getPublicProjects()).filter(project => project.data.featured);
+// The approved V0.1 hierarchy follows the collection's featured ordering.
+const [focus, ...remaining] = featured;
+const highlights = remaining.slice(0, 2);
+const selected = remaining.slice(2);
+---
+
+<BaseLayout title="SHLEE.CO.UK — Things being made" socialDescription="Projects across creative technology, computer gaming, community activity and organisational practice.">
+  <div class="container container--wide landing-page">
+    <section class="hero" aria-labelledby="identity">
+      <div class="hero-title"><HeroIdentity /></div>
+      <div class="hero-bottom">
+        <p class="hero-statement">Making ideas into things.</p>
+        {featured.length > 0 && <div class="hero-context">
+          <a class="text-link" href="/projects">Explore the work <span aria-hidden="true">↗</span></a>
+        </div>}
+      </div>
+    </section>
+
+    {focus && <section class="current-focus editorial-row" aria-labelledby="focus-heading">
+      <h2 id="focus-heading" class="eyebrow">Current focus</h2>
+      <div class="focus-content">
+        <h3 class="focus-title">{focus.data.title}</h3>
+        <ProjectMeta {...focus.data} category={focus.data.homepageCategory ?? focus.data.category} />
+        <p class="muted">{focus.data.homepageSummary ?? focus.data.summary}</p>
+        <a class="text-link" href={projectUrl(focus)}>View {focus.data.title} <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>}
+
+    {highlights.length > 0 && <section class="work-section" aria-labelledby="featured-heading">
+      <div class="section-heading"><h2 id="featured-heading">Featured</h2></div>
+      <div class="featured-work">
+        {highlights.map((project, index) => <HomeProject project={project} inset={index > 0} />)}
+      </div>
+    </section>}
+
+    {selected.length > 0 && <section class="selected-section" aria-labelledby="selected-heading">
+      <div class="section-heading"><h2 id="selected-heading">Selected / established</h2></div>
+      <div class="selected-work">
+        {selected.map(project => <HomeProject project={project} />)}
+      </div>
+    </section>}
+
+    <section class="introduction editorial-row" aria-labelledby="about-heading">
+      <h2 id="about-heading" class="eyebrow">Behind the work</h2>
+      <div>
+        <p class="intro-statement">I'm Ashley, usually Shlee.</p>
+        <p class="muted intro-note">My passion is creative technology, community projects and organisational practices.</p>
+        <a class="text-link" href="/about">About <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .landing-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-statement { max-width: 18ch; }
+  .hero-context { flex-shrink: 0; }
+  .focus-content { display: grid; gap: var(--space-3); min-width: 0; }
+  .focus-content > p { max-width: var(--reading-width); }
+  .featured-work { display: grid; gap: var(--space-6); }
+  .introduction .text-link { margin-top: var(--space-3); }
+  .hero {
+    position: relative;
+    flex: 1;
+    /* Keep both elements apart and leave room below a wrapped statement. */
+    min-height: max(
+      calc(var(--text-display) * 1.7 + var(--text-large) * 3 + var(--space-3) * 3),
+      calc(var(--text-large) * 10 + var(--space-3) * 3)
+    );
+  }
+  .hero-title {
+    position: absolute;
+    inset-inline: 0;
+    top: 40%;
+    transform: translateY(-50%);
+  }
+  .hero-title :global(#identity) { margin-block: 0; }
+  .hero-bottom {
+    position: absolute;
+    inset-inline: 0;
+    top: 87.5%;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-5);
+    align-items: end;
+  }
+  .hero-statement, .intro-statement {
+    font-size: var(--text-large);
+    line-height: var(--leading-heading);
+    letter-spacing: -0.035em;
+  }
+  .hero-context {
+    max-width: 24rem;
+    color: var(--color-text-muted);
+  }
+  .hero-context .text-link {
+    margin-top: var(--space-3);
+  }
+  .editorial-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-5);
+    border-top: var(--border-rule);
+  }
+  .current-focus {
+    padding-block: var(--space-5);
+    grid-template-columns: 1fr 2fr;
+    align-items: baseline;
+  }
+  .focus-title {
+    font-size: var(--text-heading);
+    line-height: var(--leading-heading);
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.025em;
+  }
+  .work-section {
+    padding-top: var(--space-7);
+  }
+  .section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .section-heading h2 {
+    font-size: var(--text-heading);
+  }
+  .selected-section {
+    padding-block: var(--space-7);
+  }
+  .selected-work {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .introduction {
+    /* Use spare viewport space above the whole section, keeping its divider attached. */
+    margin-top: auto;
+    padding-block: var(--space-6) var(--space-7);
+  }
+  .intro-note {
+    margin-top: var(--space-4);
+    max-width: var(--reading-width);
+  }
+
+  @media (max-width: 47.99rem) {
+    .hero-bottom {
+      align-items: start;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .editorial-row {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+    .selected-work {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+    .section-heading {
+      flex-wrap: wrap;
+    }
+  }
+</style>

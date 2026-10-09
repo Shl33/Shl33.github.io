@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/projects.css';
+---
+
+<BaseLayout title="About — SHLEE.CO.UK" description="About Ashley Dawson, aka Shlee, and the creative technology, computer gaming, community and organisational work behind SHLEE.CO.UK.">
+  <article class="container container--wide project-page" data-letter-rain>
+    <header class="project-heading"><h1>About</h1></header>
+    <div class="project-body">
+      <p>I am Ashley Dawson, aka Shlee.</p>
+
+      <h2>What I do</h2>
+      <p>I tend to work on projects that combine my passion for community and technology to build something sustainable and purposeful.</p>
+      <p>That can mean problem solving, planning or learning new skills needed to bring an idea into reality.</p>
+      <p>The common thread is taking a concept and working through the parts required to make it exist.</p>
+
+      <h2>Background</h2>
+      <p>I have spent a significant amount of time in computer gaming communities.</p>
+      <p>I am particularly interested in projects where technology is not the end product on its own, but part of something people can use, contribute to or build around.</p>
+
+      <h2>Approach</h2>
+      <p>I prefer practical development. I am interested in how those pieces fit together and in building enough structure around an idea for it to survive and be built on.</p>
+    </div>
+  </article>
+
+  <script is:inline>
+    (() => {
+      const article = document.querySelector('[data-letter-rain]');
+      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (!article || motion.matches || !window.requestAnimationFrame) return;
+
+      const duration = 3000;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      canvas.className = 'about-letter-rain';
+      canvas.setAttribute('aria-hidden', 'true');
+      let frame;
+      let stopped = false;
+
+      const finish = () => {
+        if (stopped) return;
+        stopped = true;
+        window.cancelAnimationFrame(frame);
+        article.classList.remove('is-letter-raining');
+        canvas.remove();
+        motion.removeEventListener('change', finish);
+        window.removeEventListener('resize', finish);
+        window.removeEventListener('pagehide', finish);
+        document.removeEventListener('visibilitychange', finish);
+      };
+
+      try {
+        const letters = [];
+        const fontMetrics = new Map();
+        // Measure the original text rather than splitting it into spans: wrapping,
+        // kerning, selection and the accessible headings remain unchanged.
+        for (const element of article.querySelectorAll('h1, h2, p')) {
+          const style = getComputedStyle(element);
+          const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          context.font = font;
+          if (!fontMetrics.has(font)) fontMetrics.set(font, context.measureText('Mg'));
+          const metrics = fontMetrics.get(font);
+          const size = parseFloat(style.fontSize);
+          const ascent = metrics.fontBoundingBoxAscent ?? size * 0.8;
+          const descent = metrics.fontBoundingBoxDescent ?? size * 0.2;
+          const nodes = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+          let node;
+          while ((node = nodes.nextNode())) {
+            let offset = 0;
+            for (const letter of node.textContent) {
+              const range = document.createRange();
+              range.setStart(node, offset);
+              offset += letter.length;
+              range.setEnd(node, offset);
+              if (/\s/.test(letter)) continue;
+              const bounds = range.getBoundingClientRect();
+              if (!bounds.width || !bounds.height) continue;
+              letters.push({
+                letter, font, color: style.color, size,
+                x: bounds.left + window.scrollX,
+                y: bounds.top + window.scrollY + (bounds.height - ascent - descent) / 2 + ascent,
+                startY: -size - Math.random() * 80,
+                start: 0, arrival: duration,
+              });
+            }
+          }
+        }
+        if (!letters.length) return;
+
+        // Shuffle spatial positions, then spread arrivals across one shared
+        // three-second window. The last arrival lands exactly at the end.
+        for (let index = letters.length - 1; index > 0; index--) {
+          const other = Math.floor(Math.random() * (index + 1));
+          [letters[index], letters[other]] = [letters[other], letters[index]];
+        }
+        letters.forEach((letter, index) => {
+          letter.start = Math.random() * 450;
+          letter.arrival = 900 + index / Math.max(1, letters.length - 1) * (duration - 900);
+        });
+
+        const width = document.documentElement.clientWidth;
+        const height = Math.ceil(Math.max(document.documentElement.scrollHeight,
+          ...letters.map(letter => letter.y + letter.size)));
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.ceil(width * pixelRatio);
+        canvas.height = Math.ceil(height * pixelRatio);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        context.scale(pixelRatio, pixelRatio);
+        context.textBaseline = 'alphabetic';
+        document.body.append(canvas);
+        article.classList.add('is-letter-raining');
+        motion.addEventListener('change', finish);
+        window.addEventListener('resize', finish);
+        window.addEventListener('pagehide', finish);
+        document.addEventListener('visibilitychange', finish);
+        const started = performance.now();
+
+        const draw = now => {
+          if (stopped) return;
+          try {
+            const elapsed = now - started;
+            if (elapsed >= duration) { finish(); return; }
+            context.clearRect(0, 0, width, height);
+            for (const letter of letters) {
+              if (elapsed < letter.start) continue;
+              const travelTime = letter.arrival - letter.start;
+              const progress = Math.min(1, (elapsed - letter.start) / travelTime);
+              const eased = 1 - (1 - progress) ** 3;
+              const y = letter.startY + (letter.y - letter.startY) * eased;
+              if (y < -letter.size) continue;
+              context.font = letter.font;
+              context.fillStyle = letter.color;
+              // Ghost glyphs stretch with fall speed and fade towards the top.
+              // The trail disappears as each letter settles into its own place.
+              const speed = (letter.y - letter.startY) * 3 * (1 - progress) ** 2 / travelTime;
+              const trail = Math.min(90, speed * 65);
+              if (trail > 2) {
+                for (let ghost = 4; ghost >= 1; ghost--) {
+                  context.globalAlpha = (1 - ghost / 5) * 0.22 * (1 - progress);
+                  context.fillText(letter.letter, letter.x, y - trail * ghost / 4);
+                }
+              }
+              context.globalAlpha = Math.min(1, progress * 8);
+              context.fillText(letter.letter, letter.x, y);
+            }
+            frame = window.requestAnimationFrame(draw);
+          } catch {
+            finish();
+          }
+        };
+        frame = window.requestAnimationFrame(draw);
+      } catch {
+        finish();
+      }
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  [data-letter-rain].is-letter-raining :is(h1, h2, p) { opacity: 0; }
+  :global(.about-letter-rain) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-letter-rain].is-letter-raining :is(h1, h2, p) { opacity: 1; }
+    :global(.about-letter-rain) { display: none; }
+  }
+</style>

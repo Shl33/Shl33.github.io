@@ -1,0 +1,32 @@
+---
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="site-footer container container--wide">
+  <a class="footer-home" href="/">SHLEE.CO.UK</a>
+  <p class="copyright">© {year} ASHLEY DAWSON</p>
+  <p class="tagline muted">THINGS BEING MADE</p>
+</footer>
+
+<style>
+  .site-footer {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    border-top: var(--border-rule);
+    font-size: var(--text-small);
+  }
+  .copyright { text-align: center; }
+  .tagline { text-align: right; }
+  .footer-home {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  @media (max-width: 47.99rem) {
+    .site-footer { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

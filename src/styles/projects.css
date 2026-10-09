@@ -1,0 +1,25 @@
+.project-page {
+  padding-block: var(--space-6) var(--space-7);
+  overflow-wrap: anywhere;
+}
+.project-heading {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.project-heading h1 {
+  font-size: var(--text-large);
+  letter-spacing: -0.03em;
+}
+.project-summary { max-width: var(--reading-width); }
+.project-back { margin-bottom: var(--space-5); }
+.project-body { max-width: var(--reading-width); }
+.project-body > * + * { margin-top: var(--space-4); }
+.project-body h2, .project-body h3 { margin-top: var(--space-5); }
+.project-body h2 { font-size: var(--text-heading); }
+.project-body h3 { font-size: 1.25rem; }
+.project-body ul, .project-body ol { padding-left: var(--space-4); }
+.project-body li + li { margin-top: var(--space-2); }
+.project-body pre { overflow-x: auto; padding: var(--space-3); background: var(--color-surface); }
+.project-body blockquote { margin-inline: 0; padding-left: var(--space-4); border-left: var(--border-rule); }
+.project-body img { margin-block: var(--space-5); }

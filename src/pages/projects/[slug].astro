@@ -1,0 +1,34 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectMeta from '../../components/ProjectMeta.astro';
+import { getPublicProjects, type Project } from '../../lib/projects';
+import { projectStatusLabels } from '../../lib/project-status';
+import '../../styles/projects.css';
+
+export async function getStaticPaths() {
+  return (await getPublicProjects()).map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+interface Props { project: Project }
+const { project } = Astro.props;
+const { title, summary, category, status } = project.data;
+const { Content } = await render(project);
+const hasBody = Boolean(project.body?.trim());
+const description = summary ?? `${title} — ${category}. ${projectStatusLabels[status]}. A project by Shlee.`;
+---
+
+<BaseLayout title={`${title} — SHLEE.CO.UK`} description={description}>
+  <article class="container container--wide project-page">
+    <a class="text-link project-back" href="/projects">← All projects</a>
+    <header class="project-heading">
+      <ProjectMeta {...project.data} />
+      <h1>{title}</h1>
+      {summary && <p class="project-summary muted">{summary}</p>}
+    </header>
+    {hasBody && <div class="project-body"><Content /></div>}
+  </article>
+</BaseLayout>

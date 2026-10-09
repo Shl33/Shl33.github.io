@@ -1,0 +1,53 @@
+---
+import ProjectMeta from './ProjectMeta.astro';
+import { projectUrl, type Project } from '../lib/projects';
+
+interface Props { project: Project; inset?: boolean }
+const { project, inset = false } = Astro.props;
+---
+
+<article class:list={['home-project', { inset }]}>
+  <div class="project-visual" aria-hidden="true">{project.data.title}</div>
+  <div class="project-caption">
+    <h3>{project.data.title}</h3>
+    <div class="project-copy">
+      <ProjectMeta {...project.data} category={project.data.homepageCategory ?? project.data.category} />
+      {(project.data.homepageSummary ?? project.data.summary) &&
+        <p class="muted">{project.data.homepageSummary ?? project.data.summary}</p>}
+      <a class="text-link" href={projectUrl(project)}>View {project.data.title} <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .home-project { min-width: 0; overflow-wrap: anywhere; }
+  .inset { width: 75%; margin-left: auto; }
+  .project-visual {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 2 / 1;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: clamp(2rem, 7vw, 7rem);
+    font-weight: var(--weight-bold);
+    line-height: 1;
+    letter-spacing: -0.055em;
+    text-align: center;
+  }
+  .inset .project-visual { background: var(--color-surface-secondary); }
+  .project-caption {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+  }
+  h3 { font-size: var(--text-heading); }
+  .project-copy { display: grid; gap: var(--space-3); min-width: 0; }
+  .project-copy p { max-width: var(--reading-width); }
+  @media (max-width: 47.99rem) {
+    .inset { width: 90%; }
+    .project-visual { aspect-ratio: 4 / 3; }
+    .project-caption { grid-template-columns: 1fr; }
+  }
+</style>
