@@ -20,6 +20,7 @@ const projects = defineCollection({
   }),
   schema: z.object({
     title: text,
+    logo: z.string().regex(/^\/projects\/[a-z0-9-]+\/[a-z0-9-]+\.svg$/).optional(),
     category: text,
     homepageCategory: text.optional(),
     status: z.enum(projectStatuses),

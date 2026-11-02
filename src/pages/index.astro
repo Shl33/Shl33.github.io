@@ -1,15 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProjectMeta from '../components/ProjectMeta.astro';
 import HomeProject from '../components/HomeProject.astro';
 import HeroIdentity from '../components/HeroIdentity.astro';
-import { getPublicProjects, projectUrl } from '../lib/projects';
+import { getPublicProjects } from '../lib/projects';
 
 const featured = (await getPublicProjects()).filter(project => project.data.featured);
-// The approved V0.1 hierarchy follows the collection's featured ordering.
-const [focus, ...remaining] = featured;
-const highlights = remaining.slice(0, 2);
-const selected = remaining.slice(2);
 ---
 
 <BaseLayout title="SHLEE.CO.UK — Things being made" socialDescription="Projects across creative technology, computer gaming, community activity and organisational practice.">
@@ -24,27 +19,13 @@ const selected = remaining.slice(2);
       </div>
     </section>
 
-    {focus && <section class="current-focus editorial-row" aria-labelledby="focus-heading">
-      <h2 id="focus-heading" class="eyebrow">Current focus</h2>
-      <div class="focus-content">
-        <h3 class="focus-title">{focus.data.title}</h3>
-        <ProjectMeta {...focus.data} category={focus.data.homepageCategory ?? focus.data.category} />
-        <p class="muted">{focus.data.homepageSummary ?? focus.data.summary}</p>
-        <a class="text-link" href={projectUrl(focus)}>View {focus.data.title} <span aria-hidden="true">↗</span></a>
+    {featured.length > 0 && <section class="work-section" aria-labelledby="projects-heading">
+      <div class="section-heading">
+        <h2 id="projects-heading">Projects</h2>
+        <a class="text-link" href="/projects">All projects <span aria-hidden="true">↗</span></a>
       </div>
-    </section>}
-
-    {highlights.length > 0 && <section class="work-section" aria-labelledby="featured-heading">
-      <div class="section-heading"><h2 id="featured-heading">Featured</h2></div>
       <div class="featured-work">
-        {highlights.map((project, index) => <HomeProject project={project} inset={index > 0} />)}
-      </div>
-    </section>}
-
-    {selected.length > 0 && <section class="selected-section" aria-labelledby="selected-heading">
-      <div class="section-heading"><h2 id="selected-heading">Selected / established</h2></div>
-      <div class="selected-work">
-        {selected.map(project => <HomeProject project={project} />)}
+        {featured.map(project => <HomeProject project={project} />)}
       </div>
     </section>}
 
@@ -67,31 +48,28 @@ const selected = remaining.slice(2);
   }
   .hero-statement { max-width: 18ch; }
   .hero-context { flex-shrink: 0; }
-  .focus-content { display: grid; gap: var(--space-3); min-width: 0; }
-  .focus-content > p { max-width: var(--reading-width); }
-  .featured-work { display: grid; gap: var(--space-6); }
+  .featured-work {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
   .introduction .text-link { margin-top: var(--space-3); }
   .hero {
-    position: relative;
-    flex: 1;
-    /* Keep both elements apart and leave room below a wrapped statement. */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+    /* Target 48% of the previous height. Normal flow keeps full-size text
+       from overlapping when its natural height exceeds that target. */
     min-height: max(
-      calc(var(--text-display) * 1.7 + var(--text-large) * 3 + var(--space-3) * 3),
-      calc(var(--text-large) * 10 + var(--space-3) * 3)
+      31.2svh,
+      calc(var(--text-display) * 0.816 + var(--text-large) * 1.44 + var(--space-3) * 1.44),
+      calc(var(--text-large) * 4.8 + var(--space-3) * 1.44)
     );
-  }
-  .hero-title {
-    position: absolute;
-    inset-inline: 0;
-    top: 40%;
-    transform: translateY(-50%);
   }
   .hero-title :global(#identity) { margin-block: 0; }
   .hero-bottom {
-    position: absolute;
-    inset-inline: 0;
-    top: 87.5%;
-    transform: translateY(-50%);
     display: flex;
     justify-content: space-between;
     gap: var(--space-5);
@@ -115,19 +93,8 @@ const selected = remaining.slice(2);
     gap: var(--space-5);
     border-top: var(--border-rule);
   }
-  .current-focus {
-    padding-block: var(--space-5);
-    grid-template-columns: 1fr 2fr;
-    align-items: baseline;
-  }
-  .focus-title {
-    font-size: var(--text-heading);
-    line-height: var(--leading-heading);
-    margin-bottom: var(--space-2);
-    letter-spacing: -0.025em;
-  }
   .work-section {
-    padding-top: var(--space-7);
+    padding-block: var(--space-6) var(--space-7);
   }
   .section-heading {
     display: flex;
@@ -138,15 +105,6 @@ const selected = remaining.slice(2);
   }
   .section-heading h2 {
     font-size: var(--text-heading);
-  }
-  .selected-section {
-    padding-block: var(--space-7);
-  }
-  .selected-work {
-    display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    gap: var(--space-5);
-    align-items: start;
   }
   .introduction {
     /* Use spare viewport space above the whole section, keeping its divider attached. */
@@ -168,9 +126,8 @@ const selected = remaining.slice(2);
       grid-template-columns: 1fr;
       gap: var(--space-3);
     }
-    .selected-work {
+    .featured-work {
       grid-template-columns: 1fr;
-      gap: var(--space-5);
     }
     .section-heading {
       flex-wrap: wrap;

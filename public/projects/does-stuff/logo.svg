@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Does Stuff — Forward</title>
+  <desc id="desc">A cream geometric D with a right-pointing arrow cut out, on a forest-green rounded square.</desc>
+  <rect x="40" y="40" width="944" height="944" rx="168" fill="#28563f"/>
+  <path fill="#f5f3e8" fill-rule="evenodd" d="
+    M 224,208
+    H 490
+    C 699,208 816,321 816,512
+    C 816,703 699,816 490,816
+    H 224
+    Q 208,816 208,800
+    V 224
+    Q 208,208 224,208
+    Z
+    M 362,424
+    H 492
+    V 366
+    Q 492,344 510,357
+    L 680,496
+    Q 700,512 680,528
+    L 510,667
+    Q 492,680 492,658
+    V 600
+    H 362
+    Q 346,600 346,584
+    V 440
+    Q 346,424 362,424
+    Z"/>
+</svg>

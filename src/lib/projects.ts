@@ -17,7 +17,3 @@ export async function getPublicProjects(): Promise<Project[]> {
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
 }
-
-export function projectUrl(project: Project): string {
-  return `/projects/${project.id}`;
-}

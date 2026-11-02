@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1828" height="758" viewBox="110 60 1828 758" role="img" aria-label="LAN angular outlined geometric lettering">
+  <title>LAN geometric logo, transparent background</title>
+
+  <!-- Individual silhouette polygons remain editable -->
+  <g id="letter-fills" fill="#171717" stroke="none">
+    <path id="L" d="M125 77 H433 V585 H638 V803 H125 Z"/>
+    <path id="A" d="M638 77 H1034 L1253 388 V803 H638 Z"/>
+    <path id="N-diagonal" d="M1253 77 H1563 V141 L1614 213 V736 L1563 664 V803 H1253 Z"/>
+    <path id="N-right" d="M1614 77 H1922 V803 H1614 Z"/>
+  </g>
+  <!-- The white linework is true SVG vector geometry (not an embedded raster). -->
+  <g id="white-linework" fill="none" stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- L outline and panel seams -->
+    <path id="L-outline" d="M125 803 V77 H433 V585 H638"/>
+    <path id="L-panel-1" d="M280 77 V585"/>
+    <path id="L-corner-seam" d="M280 585 H433"/>
+    <path id="L-panel-2" d="M485 585 V803"/>
+    <path id="L-base" d="M125 803 H638"/>
+    <!-- A structure: two legs, angular upper edge and internal triangle/rectangle -->
+    <path id="A-outline" d="M638 803 V77 H1034 L1253 388 V803"/>
+    <path id="A-left-seam" d="M792 77 V803"/>
+    <path id="A-upper-triangle" d="M945 477 V259 L1099 477 Z"/>
+    <path id="A-lower-panel" d="M945 803 V658 H1099 V803"/>
+    <!-- N perimeter and its defining diagonal / plane edges -->
+    <path id="N-left" d="M1253 803 V77 H1563 V141 L1614 213"/>
+    <path id="N-upper-plane" d="M1408 77 V141 H1563"/>
+    <path id="N-upper-diagonal" d="M1408 141 L1614 430"/>
+    <path id="N-middle-seam" d="M1614 77 V430"/>
+    <path id="N-lower-diagonal" d="M1408 448 L1614 736 V803"/>
+    <path id="N-left-leg" d="M1408 448 V803"/>
+    <path id="N-back-plane" d="M1563 664 V803"/>
+    <path id="N-right-outline" d="M1614 77 H1922 V803 H1614"/>
+    <path id="N-right-seam" d="M1768 77 V803"/>
+    <path id="lower-edge" d="M638 803 H1563"/>
+  </g>
+</svg>

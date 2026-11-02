@@ -1,0 +1,23 @@
+---
+interface Props { src: string }
+const { src } = Astro.props;
+---
+
+<div class="project-logo" aria-hidden="true">
+  <img src={src} alt="" loading="lazy" decoding="async" />
+</div>
+
+<style>
+  .project-logo {
+    position: relative;
+    aspect-ratio: 3 / 2;
+  }
+  /* Contain both square icons and wide wordmarks without cropping either. */
+  img {
+    position: absolute;
+    inset: 15% 12.5%;
+    width: 75%;
+    height: 70%;
+    object-fit: contain;
+  }
+</style>

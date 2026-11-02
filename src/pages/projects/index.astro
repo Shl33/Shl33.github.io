@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectMeta from '../../components/ProjectMeta.astro';
-import { getPublicProjects, projectUrl } from '../../lib/projects';
+import ProjectLogo from '../../components/ProjectLogo.astro';
+import { getPublicProjects } from '../../lib/projects';
 import '../../styles/projects.css';
 
 const projects = await getPublicProjects();
@@ -19,9 +20,12 @@ const projects = await getPublicProjects();
         {projects.map((project) => (
           <li>
             <article class="project-row">
-              <ProjectMeta {...project.data} />
               <div>
-                <h2><a class="project-title-link" href={projectUrl(project)}>{project.data.title}<span aria-hidden="true"> ↗</span></a></h2>
+                {project.data.logo && <ProjectLogo src={project.data.logo} />}
+              </div>
+              <div>
+                <ProjectMeta {...project.data} />
+                <h2>{project.data.title}</h2>
                 {project.data.summary && <p class="project-summary muted">{project.data.summary}</p>}
               </div>
             </article>
@@ -43,8 +47,6 @@ const projects = await getPublicProjects();
     border-top: var(--border-rule);
   }
   h2 { font-size: var(--text-large); }
-  .project-title-link { display: inline-block; min-height: 44px; }
-  .project-title-link span { color: var(--color-text-muted); }
   .project-summary { margin-top: var(--space-4); }
   @media (max-width: 47.999rem) {
     .project-row { grid-template-columns: 1fr; gap: var(--space-4); }
