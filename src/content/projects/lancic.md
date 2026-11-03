@@ -1,9 +1,8 @@
 ---
 title: "LAN CIC"
 category: "Community facilitation for Computer Gaming and Creative technology"
-stage: "Community Interest Company"
 status: "development"
-summary: "A Barnsley community organisation around developing computer gaming, creative technology and community activity."
+summary: "A Barnsley organisation that works with partners to deliver meaningful projects through gaming and creative technology."
 logo: "/projects/lancic/logo.svg"
 featured: true
 featuredOrder: 3

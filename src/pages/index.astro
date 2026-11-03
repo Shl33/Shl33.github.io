@@ -13,16 +13,12 @@ const featured = (await getPublicProjects()).filter(project => project.data.feat
       <div class="hero-title"><HeroIdentity /></div>
       <div class="hero-bottom">
         <p class="hero-statement">Making ideas into things.</p>
-        {featured.length > 0 && <div class="hero-context">
-          <a class="text-link" href="/projects">Explore the work <span aria-hidden="true">↗</span></a>
-        </div>}
       </div>
     </section>
 
     {featured.length > 0 && <section class="work-section" aria-labelledby="projects-heading">
       <div class="section-heading">
         <h2 id="projects-heading">Projects</h2>
-        <a class="text-link" href="/projects">All projects <span aria-hidden="true">↗</span></a>
       </div>
       <div class="featured-work">
         {featured.map(project => <HomeProject project={project} />)}
